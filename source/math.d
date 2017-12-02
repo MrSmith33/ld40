@@ -4,16 +4,16 @@ public import voxelman.math;
 
 struct Aabb2d
 {
-	vec2 position, size;
+	vec2 center, size;
 
-	vec2 center() const @property
+	vec2 start() const @property
 	{
-		return position + size * 0.5f;
+		return center - size * 0.5f;
 	}
 
 	vec2 end() const @property
 	{
-		return position + size;
+		return center + size * 0.5f;
 	}
 
 	bool collides(Aabb2d other) const
@@ -25,6 +25,17 @@ struct Aabb2d
 
 	bool collides(ivec2 point) const
 	{
-		return point.x >= position.x && point.x < end.x && point.y >= position.y && point.y < end.y;
+		return point.x >= start.x && point.x < end.x && point.y >= start.y && point.y < end.y;
+	}
+
+	vec2 intersectionSize(Aabb2d other)
+	{
+		vec2 endPos = end;
+		vec2 o_endPos = other.end;
+
+		vec2 p_min = vector_max(start, other.start);
+		vec2 p_max = vector_min(endPos, o_endPos);
+
+		return p_max - p_min;
 	}
 }

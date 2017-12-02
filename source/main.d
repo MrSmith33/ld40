@@ -29,7 +29,7 @@ class Game : GuiApp
 	Tilemap!(32, 32) tilemap;
 	Camera camera;
 	EntityProxy player;
-	float speed = 100;
+	float speed = 10;
 
 	GameContext ctx;
 
@@ -46,12 +46,13 @@ class Game : GuiApp
 		showDebugInfo = true;
 		window.keyPressed.connect(&onKey);
 
-		sprites = renderQueue.resourceManager.loadIndexedSpriteSheet("tex/sprites", TILE_SIZE_VEC);
+		sprites = renderQueue.resourceManager.loadIndexedSpriteSheet("tex/sprites", TILE_SIZE_IVEC);
 
 		playerAnim = renderQueue.resourceManager.loadAnimation("tex/player");
 
 		renderQueue.reuploadTexture();
 		camera.cameraSize = windowSize;
+		camera.zoom = 32;
 
 		ctx = new GameContext(&debugText);
 		setupLevel();
@@ -61,19 +62,28 @@ class Game : GuiApp
 	{
 		ctx.entities.removeAll();
 
-		tilemap.tiles[4][2] = Tile(TileType.circle);
+		tilemap.tiles[4][2] = Tile(TileType.circle, true);
+		tilemap.tiles[6][2] = Tile(TileType.circle, true);
 
 		auto firstFrame = &playerAnim.frames[0].sprite;
+		auto spriteSize = vec2(firstFrame.atlasRect.size);
 		auto playerSprite = SpriteInstance(
 			firstFrame,
-			vec2(1, 1),
-			vec2(firstFrame.atlasRect.size)*0.5f);
+			vec2(1,1) / TILE_SIZE_VEC,
+			spriteSize*0.5f);
 
 		player = ctx.createEntity(
-			EntityTransform(vec2(100, 100), vec2(14, 14)),
+			EntityTransform(vec2(4, 4), vec2(14, 14) / TILE_SIZE_VEC),
 			EntityCameraTarget(),
 			EntityMovementTarget(),
 			EntitySprite(playerSprite));
+	}
+
+	bool isTileSolid(ivec2 pos)
+	{
+		if (pos.x >= 0 && pos.x < tilemap.width && pos.y >= 0 && pos.y < tilemap.height)
+			return tilemap.tiles[pos.x][pos.y].isSolid;
+		else return true;
 	}
 
 	override void userPreUpdate(double delta)
@@ -86,7 +96,9 @@ class Game : GuiApp
 
 		foreach(eid, transform; ctx.entities.query!(EntityTransform, EntityMovementTarget))
 		{
-			transform.position += moveVec.normalized * delta * speed;
+			vec2 deltaPos = moveVec.normalized * delta * speed;
+			transform.position = ctx.moveEntity(transform.position, transform.size, deltaPos, &isTileSolid);
+			debugText.putfln("eid: %s pos %s", eid, transform.position);
 		}
 
 		debugText.putfln("FPS: %.1f", fpsHelper.fps);
@@ -106,7 +118,7 @@ class Game : GuiApp
 
 	void onKey(KeyCode key, uint modifiers)
 	{
-		if (key == KeyCode.KEY_Q){ camera.zoom += 1; }
-		else if (key == KeyCode.KEY_E){ camera.zoom = max(camera.zoom - 1, 1); }
+		if (key == KeyCode.KEY_Q){ camera.zoom *= 2; }
+		else if (key == KeyCode.KEY_E){ camera.zoom = max(camera.zoom / 2, 1); }
 	}
 }

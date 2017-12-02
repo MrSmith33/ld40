@@ -3,6 +3,7 @@ module entity;
 import voxelman.text.linebuffer;
 import graphics;
 import math;
+import tilemap;
 import datadriven;
 
 class GameContext
@@ -34,15 +35,72 @@ class GameContext
 		foreach(id, transform, sprite; entities.query!(EntityTransform, EntitySprite))
 		{
 			renderQueue.drawSpriteCamera(
-				sprite.spriteInst, transform.rotation,
+				*sprite, transform.rotation,
 				camera, transform.position, ENTITY_DEPTH);
 			debugText.putfln("draw sprite %s", id);
 		}
 
 		foreach(id, transform, animation; entities.query!(EntityTransform, EntityAnimation))
 		{
-			// update and draw animation
+			animation.update(deltaTime);
+			auto sprite = animation.currentFrameSprite;
+			renderQueue.drawSpriteCamera(
+				sprite, transform.rotation,
+				camera, transform.position, ENTITY_DEPTH);
+			debugText.putfln("draw animation %s", id);
 		}
+	}
+
+	vec2 moveEntity(vec2 pos, vec2 size, vec2 delta, scope bool delegate(ivec2) isTileSolid)
+	{
+		float distance = delta.length;
+		int num_steps = cast(int)ceil(distance * 2); // num cells moved
+		if (num_steps == 0) return pos;
+
+		vec2 moveStep = delta / num_steps;
+
+		foreach(i; 0..num_steps) {
+			pos += moveStep;
+			collide(pos, moveStep, size, isTileSolid);
+		}
+
+		return pos;
+	}
+
+	void collide(ref vec2 point, ref vec2 moveStep, vec2 size, scope bool delegate(ivec2) isTileSolid)
+	{
+		ivec2 cell = ivec2(floor(point.x), floor(point.y));
+		Aabb2d body_aabb = Aabb2d(point, size);
+
+		foreach(dx; [0, -1, 1])
+		{
+		foreach(dy; [0, -1, 1])
+		{
+			ivec2 local_cell = cell + ivec2(dx, dy);
+			if (isTileSolid(local_cell))
+			{
+				Aabb2d cell_aabb = Aabb2d(vec2(local_cell)+0.5f, vec2(1, 1));
+				bool collides = cell_aabb.collides(body_aabb);
+				if (collides)
+				{
+					vec2 vector = cell_aabb.intersectionSize(body_aabb);
+					if (vector.x < vector.y) {
+						int dir = cell_aabb.center.x < body_aabb.center.x ? 1 : -1;
+						body_aabb.center.x += vector.x * dir;
+						moveStep.x = 0;
+					} else {
+						int dir = cell_aabb.center.y < body_aabb.center.y ? 1 : -1;
+						body_aabb.center.y += vector.y * dir;
+						moveStep.y = 0;
+					}
+				}
+				
+			}
+		}
+		}
+
+		point.x = body_aabb.center.x;
+		point.y = body_aabb.center.y;
 	}
 }
 
@@ -89,10 +147,12 @@ struct EntityTransform
 struct EntitySprite
 {
 	SpriteInstance spriteInst;
+	alias spriteInst this;
 }
 
 @Component("ld40.EntityAnimation", Replication.none)
 struct EntityAnimation
 {
 	AnimationInstance anim;
+	alias anim this;
 }

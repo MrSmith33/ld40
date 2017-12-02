@@ -13,15 +13,18 @@ enum TileType : ubyte
 struct Tile
 {
 	TileType type;
-	bool solid; // can be changed to flags
+	bool isSolid; // can be changed to flags
 }
 
 enum TILE_SIZE = 16;
-enum ivec2 TILE_SIZE_VEC = ivec2(TILE_SIZE, TILE_SIZE);
+enum vec2 TILE_SIZE_VEC = vec2(TILE_SIZE, TILE_SIZE);
+enum ivec2 TILE_SIZE_IVEC = ivec2(TILE_SIZE, TILE_SIZE);
 
-struct Tilemap(int width, int height)
+struct Tilemap(int w, int h)
 {
-	Tile[height][width] tiles;
+	int width = w;
+	int height = h;
+	Tile[h][w] tiles;
 }
 
 void drawTileMap(Tilemap : Tilemap)(
@@ -30,12 +33,13 @@ void drawTileMap(Tilemap : Tilemap)(
 	ref Camera camera,
 	SpriteRef[] spriteSheet)
 {
+	vec2 tileScale = vec2(1,1)/TILE_SIZE_VEC;
 	foreach (x, column; tilemap.tiles)
 	{
 		foreach (y, tile; column)
 		{
 			auto sprite = *(spriteSheet[tile.type]);
-			renderQueue.drawSpriteCamera(sprite, 0, camera, vec2(x, y) * vec2(TILE_SIZE_VEC), 0);
+			renderQueue.drawSpriteCamera(sprite, tileScale, vec2(0,0), 0, camera, vec2(x, y), 0);
 		}
 	}
 }
