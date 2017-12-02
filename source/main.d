@@ -22,7 +22,7 @@ void main(string[] args)
 class App : GuiApp
 {
 	vec2 playerPos = vec2(100, 100);
-	SpriteRef[string] sprites;
+	SpriteRef[] sprites;
 	Sprite square;
 	Sprite circle;
 	Tilemap!(32, 32) tilemap;
@@ -40,11 +40,9 @@ class App : GuiApp
 		showDebugInfo = true;
 		window.keyPressed.connect(&onKey);
 
-		sprites = renderQueue.resourceManager.loadNamedSpriteSheet("tex/sprites",
+		sprites = renderQueue.resourceManager.loadIndexedSpriteSheet("tex/sprites",
 			renderQueue.resourceManager.texAtlas, TILE_SIZE_VEC);
 
-		square = *sprites["square"];
-		circle = *sprites["circle"];
 		renderQueue.reuploadTexture();
 
 		tilemap.tiles[4][2] = Tile.circle;
@@ -58,9 +56,7 @@ class App : GuiApp
 
 	override void userPostUpdate(double delta)
 	{
-		ivec2 squareGridPos = ivec2(4, 4);
-
-		renderQueue.drawTileMap(tilemap, null);
+		renderQueue.drawTileMap(tilemap, sprites);
 	}
 
 	void onKey(KeyCode key, uint modifiers)

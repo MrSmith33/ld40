@@ -52,8 +52,7 @@ void drawTileMap(Tilemap : Tilemap)(ref RenderQueue renderQueue, ref Tilemap til
 	{
 		foreach (y, tile; column)
 		{
-			renderQueue.drawRectLine(vec2(ivec2(x, y) * TILE_SIZE_VEC), vec2(TILE_SIZE_VEC), 0, Colors.black);
-			//renderQueue.draw(*(spriteSheet[tile]), vec2(ivec2(x, y) * TILE_SIZE_VEC), 0);
+			renderQueue.draw(*(spriteSheet[tile]), vec2(ivec2(x, y) * TILE_SIZE_VEC), 0);
 		}
 	}
 }
