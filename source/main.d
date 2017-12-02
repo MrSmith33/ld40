@@ -53,10 +53,12 @@ class App : GuiApp
 
 	override void userPreUpdate(double delta)
 	{
-		if (window.isKeyPressed(KeyCode.KEY_W)) { camera.position += vec2( 0, -1) * delta * speed; }
-		if (window.isKeyPressed(KeyCode.KEY_A)) { camera.position += vec2(-1,  0) * delta * speed; }
-		if (window.isKeyPressed(KeyCode.KEY_S)) { camera.position += vec2( 0,  1) * delta * speed; }
-		if (window.isKeyPressed(KeyCode.KEY_D)) { camera.position += vec2( 1,  0) * delta * speed; }
+		vec2 moveVec = vec2(0, 0);
+		if (window.isKeyPressed(KeyCode.KEY_W)) { moveVec.y = -1; }
+		if (window.isKeyPressed(KeyCode.KEY_A)) { moveVec.x = -1; }
+		if (window.isKeyPressed(KeyCode.KEY_S)) { moveVec.y =  1; }
+		if (window.isKeyPressed(KeyCode.KEY_D)) { moveVec.x =  1; }
+		camera.position += moveVec.normalized * delta * speed;
 
 		debugText.putfln("FPS: %.1f", fpsHelper.fps);
 		debugText.putfln("Delta: %ss", scaledNumberFmt(fpsHelper.updateTime));
