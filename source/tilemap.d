@@ -21,7 +21,7 @@ enum ivec2 TILE_SIZE_VEC = ivec2(TILE_SIZE, TILE_SIZE);
 
 struct Tilemap(int width, int height)
 {
-	Tile[width][height] tiles;
+	Tile[height][width] tiles;
 }
 
 void drawTileMap(Tilemap : Tilemap)(
