@@ -1,0 +1,10 @@
+no-icon
+arrow-down
+arrow-right
+arrow-up-down
+cube
+locomotive
+rails
+tree
+play
+hammer

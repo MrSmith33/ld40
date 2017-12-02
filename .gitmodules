@@ -1,0 +1,3 @@
+[submodule "voxelman"]
+	path = voxelman
+	url = https://github.com/MrSmith33/voxelman.git

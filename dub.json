@@ -1,0 +1,14 @@
+{
+	"name" : "ld40",
+
+	"description" : "ld40",
+	"license" : "BSL-1.0",
+
+	"dependencies" : {
+		"voxelman:engine" : {"path" : "voxelman"}
+	},
+
+	"lflags-windows" : ["/SUBSYSTEM:windows,6.00", "/ENTRY:mainCRTStartup"],
+
+	"sourcePaths" : [ "source" ]
+}
