@@ -6,6 +6,8 @@ import voxelman.log;
 import voxelman.math;
 import voxelman.text.scale;
 
+import tilemap;
+
 void main(string[] args)
 {
 	import std.stdio : stdout;
@@ -17,15 +19,13 @@ void main(string[] args)
 	app.run(args);
 }
 
-enum TILE_SIZE = 16;
-enum ivec2 TILE_SIZE_VEC = ivec2(TILE_SIZE, TILE_SIZE);
-
 class App : GuiApp
 {
 	vec2 playerPos = vec2(100, 100);
 	SpriteRef[string] sprites;
 	Sprite square;
 	Sprite circle;
+	Tilemap!(32, 32) tilemap;
 
 	this(string title, ivec2 windowSize)
 	{
@@ -40,12 +40,14 @@ class App : GuiApp
 		showDebugInfo = true;
 		window.keyPressed.connect(&onKey);
 
-		sprites = renderQueue.resourceManager.loadNamedSpriteSheet("sprites",
+		sprites = renderQueue.resourceManager.loadNamedSpriteSheet("tex/sprites",
 			renderQueue.resourceManager.texAtlas, TILE_SIZE_VEC);
 
 		square = *sprites["square"];
 		circle = *sprites["circle"];
 		renderQueue.reuploadTexture();
+
+		tilemap.tiles[4][2] = Tile.circle;
 	}
 
 	override void userPreUpdate(double delta)
@@ -58,8 +60,7 @@ class App : GuiApp
 	{
 		ivec2 squareGridPos = ivec2(4, 4);
 
-		renderQueue.draw(square, vec2(squareGridPos * TILE_SIZE_VEC), 10000);
-		auto bitmap = renderQueue.resourceManager.texAtlas.bitmap;
+		renderQueue.drawTileMap(tilemap, null);
 	}
 
 	void onKey(KeyCode key, uint modifiers)
