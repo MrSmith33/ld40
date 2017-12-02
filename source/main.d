@@ -24,6 +24,8 @@ class App : GuiApp
 {
 	vec2 playerPos = vec2(100, 100);
 	SpriteRef[string] sprites;
+	Sprite square;
+	Sprite circle;
 
 	this(string title, ivec2 windowSize)
 	{
@@ -40,6 +42,10 @@ class App : GuiApp
 
 		sprites = renderQueue.resourceManager.loadNamedSpriteSheet("sprites",
 			renderQueue.resourceManager.texAtlas, TILE_SIZE_VEC);
+
+		square = *sprites["square"];
+		circle = *sprites["circle"];
+		renderQueue.reuploadTexture();
 	}
 
 	override void userPreUpdate(double delta)
@@ -51,10 +57,9 @@ class App : GuiApp
 	override void userPostUpdate(double delta)
 	{
 		ivec2 squareGridPos = ivec2(4, 4);
-		infof("%s", sprites);
-		auto square = sprites["square"];
-		renderQueue.draw(*square, vec2(squareGridPos * TILE_SIZE_VEC), 0);
-		//renderQueue.draw(sprites["circle"], );
+
+		renderQueue.draw(square, vec2(squareGridPos * TILE_SIZE_VEC), 10000);
+		auto bitmap = renderQueue.resourceManager.texAtlas.bitmap;
 	}
 
 	void onKey(KeyCode key, uint modifiers)
