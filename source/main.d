@@ -1,11 +1,11 @@
 module main;
 
-import voxelman.graphics;
 import voxelman.gui;
 import voxelman.log;
-import voxelman.math;
 import voxelman.text.scale;
 
+import graphics;
+import math;
 import tilemap;
 
 void main(string[] args)
@@ -47,7 +47,7 @@ class App : GuiApp
 
 		renderQueue.reuploadTexture();
 
-		tilemap.tiles[4][2] = Tile.circle;
+		tilemap.tiles[4][2] = Tile(TileType.circle);
 		camera.cameraSize = windowSize;
 	}
 
