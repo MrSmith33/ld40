@@ -46,13 +46,34 @@ struct Tilemap(int width, int height)
 	AABBRectangle[] colliders;
 }
 
-void drawTileMap(Tilemap : Tilemap)(ref RenderQueue renderQueue, ref Tilemap tilemap, SpriteRef[] spriteSheet)
+struct Camera
+{
+	float zoom = 2;
+	vec2 position = vec2(0,0);
+	vec2 cameraSize = vec2(0,0);
+}
+
+void drawTileMap(Tilemap : Tilemap)(
+	ref RenderQueue renderQueue,
+	ref Tilemap tilemap,
+	ref Camera camera,
+	SpriteRef[] spriteSheet)
 {
 	foreach (x, column; tilemap.tiles)
 	{
 		foreach (y, tile; column)
 		{
-			renderQueue.draw(*(spriteSheet[tile]), vec2(ivec2(x, y) * TILE_SIZE_VEC), 0);
+			auto sprite = *(spriteSheet[tile]);
+			vec2 size = vec2(sprite.atlasRect.size) * camera.zoom;
+			vec2 pos = (vec2(x, y) * vec2(TILE_SIZE_VEC) - camera.position) * camera.zoom + camera.cameraSize/2;
+
+			renderQueue.texBatch.putRect(
+				frect(pos, size),
+				frect(sprite.atlasRect),
+				0,
+				Colors.white,
+				renderQueue.atlasTexture);
+			//renderQueue.draw(*(spriteSheet[tile]), vec2(ivec2(x, y) * TILE_SIZE_VEC), 0);
 		}
 	}
 }

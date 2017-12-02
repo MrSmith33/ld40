@@ -26,6 +26,8 @@ class App : GuiApp
 	Sprite square;
 	Sprite circle;
 	Tilemap!(32, 32) tilemap;
+	Camera camera;
+	float speed = 100;
 
 	this(string title, ivec2 windowSize)
 	{
@@ -46,24 +48,28 @@ class App : GuiApp
 		renderQueue.reuploadTexture();
 
 		tilemap.tiles[4][2] = Tile.circle;
+		camera.cameraSize = windowSize;
 	}
 
 	override void userPreUpdate(double delta)
 	{
+		if (window.isKeyPressed(KeyCode.KEY_W)) { camera.position += vec2( 0, -1) * delta * speed; }
+		if (window.isKeyPressed(KeyCode.KEY_A)) { camera.position += vec2(-1,  0) * delta * speed; }
+		if (window.isKeyPressed(KeyCode.KEY_S)) { camera.position += vec2( 0,  1) * delta * speed; }
+		if (window.isKeyPressed(KeyCode.KEY_D)) { camera.position += vec2( 1,  0) * delta * speed; }
+
 		debugText.putfln("FPS: %.1f", fpsHelper.fps);
 		debugText.putfln("Delta: %ss", scaledNumberFmt(fpsHelper.updateTime));
 	}
 
 	override void userPostUpdate(double delta)
 	{
-		renderQueue.drawTileMap(tilemap, sprites);
+		renderQueue.drawTileMap(tilemap, camera, sprites);
 	}
 
 	void onKey(KeyCode key, uint modifiers)
 	{
-		     if (key == KeyCode.KEY_W){}
-		else if (key == KeyCode.KEY_A){}
-		else if (key == KeyCode.KEY_S){}
-		else if (key == KeyCode.KEY_D){}
+		if (key == KeyCode.KEY_Q){ camera.zoom += 1; }
+		else if (key == KeyCode.KEY_E){ camera.zoom = max(camera.zoom - 1, 1); }
 	}
 }
