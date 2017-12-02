@@ -4,9 +4,11 @@ import voxelman.gui;
 import voxelman.log;
 import voxelman.text.scale;
 
+import datadriven;
 import graphics;
 import math;
 import tilemap;
+import entity;
 
 void main(string[] args)
 {
@@ -15,19 +17,21 @@ void main(string[] args)
 	conciseLogger.logLevel = LogLevel.info;
 	sharedLog = conciseLogger;
 
-	auto app = new App("LD40", ivec2(800, 600));
+	auto app = new Game("LD40", ivec2(800, 600));
 	app.run(args);
 }
 
-class App : GuiApp
+class Game : GuiApp
 {
-	vec2 playerPos = vec2(100, 100);
 	SpriteRef[] sprites;
-	Sprite square;
-	Sprite circle;
+	SpriteSheetAnimationRef playerAnim;
+	
 	Tilemap!(32, 32) tilemap;
 	Camera camera;
+	EntityProxy player;
 	float speed = 100;
+
+	GameContext ctx;
 
 	this(string title, ivec2 windowSize)
 	{
@@ -42,13 +46,34 @@ class App : GuiApp
 		showDebugInfo = true;
 		window.keyPressed.connect(&onKey);
 
-		sprites = renderQueue.resourceManager.loadIndexedSpriteSheet("tex/sprites",
-			renderQueue.resourceManager.texAtlas, TILE_SIZE_VEC);
+		sprites = renderQueue.resourceManager.loadIndexedSpriteSheet("tex/sprites", TILE_SIZE_VEC);
+
+		playerAnim = renderQueue.resourceManager.loadAnimation("tex/player");
 
 		renderQueue.reuploadTexture();
+		camera.cameraSize = windowSize;
+
+		ctx = new GameContext(&debugText);
+		setupLevel();
+	}
+
+	void setupLevel()
+	{
+		ctx.entities.removeAll();
 
 		tilemap.tiles[4][2] = Tile(TileType.circle);
-		camera.cameraSize = windowSize;
+
+		auto firstFrame = &playerAnim.frames[0].sprite;
+		auto playerSprite = SpriteInstance(
+			firstFrame,
+			vec2(1, 1),
+			vec2(firstFrame.atlasRect.size)*0.5f);
+
+		player = ctx.createEntity(
+			EntityTransform(vec2(100, 100), vec2(14, 14)),
+			EntityCameraTarget(),
+			EntityMovementTarget(),
+			EntitySprite(playerSprite));
 	}
 
 	override void userPreUpdate(double delta)
@@ -58,7 +83,11 @@ class App : GuiApp
 		if (window.isKeyPressed(KeyCode.KEY_A)) { moveVec.x = -1; }
 		if (window.isKeyPressed(KeyCode.KEY_S)) { moveVec.y =  1; }
 		if (window.isKeyPressed(KeyCode.KEY_D)) { moveVec.x =  1; }
-		camera.position += moveVec.normalized * delta * speed;
+
+		foreach(eid, transform; ctx.entities.query!(EntityTransform, EntityMovementTarget))
+		{
+			transform.position += moveVec.normalized * delta * speed;
+		}
 
 		debugText.putfln("FPS: %.1f", fpsHelper.fps);
 		debugText.putfln("Delta: %ss", scaledNumberFmt(fpsHelper.updateTime));
@@ -66,7 +95,13 @@ class App : GuiApp
 
 	override void userPostUpdate(double delta)
 	{
+		foreach(eid, transform; ctx.entities.query!(EntityTransform, EntityCameraTarget))
+		{
+			camera.position = transform.position;
+		}
+		
 		renderQueue.drawTileMap(tilemap, camera, sprites);
+		ctx.drawEntities(renderQueue, camera, delta);
 	}
 
 	void onKey(KeyCode key, uint modifiers)

@@ -21,7 +21,6 @@ enum ivec2 TILE_SIZE_VEC = ivec2(TILE_SIZE, TILE_SIZE);
 
 struct Tilemap(int width, int height)
 {
-	/// Tile textures
 	Tile[width][height] tiles;
 }
 
@@ -36,7 +35,7 @@ void drawTileMap(Tilemap : Tilemap)(
 		foreach (y, tile; column)
 		{
 			auto sprite = *(spriteSheet[tile.type]);
-			renderQueue.drawSpriteCamera(sprite, camera, vec2(x, y) * vec2(TILE_SIZE_VEC), 0);
+			renderQueue.drawSpriteCamera(sprite, 0, camera, vec2(x, y) * vec2(TILE_SIZE_VEC), 0);
 		}
 	}
 }
